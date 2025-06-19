@@ -1,3 +1,5 @@
+import guest from '@/middleware/guest'
+
 const routes = [
   {
     path: '/',

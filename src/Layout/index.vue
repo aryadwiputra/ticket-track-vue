@@ -13,12 +13,16 @@
     <!-- main sidebar end -->
     <Transition name="mobilemenu">
       <mobile-sidebar
-        v-if="window.width < 1280 && this.$store.themeSettingsStore.mobielSidebar"
+        v-if="
+          window.width < 1280 && this.$store.themeSettingsStore.mobielSidebar
+        "
       />
     </Transition>
     <Transition name="overlay-fade">
       <div
-        v-if="window.width < 1280 && this.$store.themeSettingsStore.mobielSidebar"
+        v-if="
+          window.width < 1280 && this.$store.themeSettingsStore.mobielSidebar
+        "
         class="overlay bg-slate-900 bg-opacity-70 backdrop-filter backdrop-blur-[3px] backdrop-brightness-10 fixed inset-0 z-[999]"
         @click="this.$store.themeSettingsStore.mobielSidebar = false"
       ></div>
@@ -59,14 +63,14 @@
   </main>
 </template>
 <script>
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
-import Settings from "../components/Settings";
-import Sidebar from "../components/Sidebar/";
-import window from "@/mixins/window";
-import MobileSidebar from "@/components/Sidebar/MobileSidebar.vue";
-import FooterMenu from "@/components/Footer/FooterMenu.vue";
+import Breadcrumbs from '@/components/Breadcrumbs'
+import Footer from '@/components/Footer'
+import FooterMenu from '@/components/Footer/FooterMenu.vue'
+import Header from '@/components/Header'
+import Settings from '@/components/Settings'
+import Sidebar from '@/components/Sidebar/'
+import MobileSidebar from '@/components/Sidebar/MobileSidebar.vue'
+import window from '@/mixins/window'
 
 export default {
   mixins: [window],
@@ -82,18 +86,18 @@ export default {
   methods: {
     switchHeaderClass() {
       if (
-        this.$store.themeSettingsStore.menuLayout === "horizontal" ||
+        this.$store.themeSettingsStore.menuLayout === 'horizontal' ||
         this.$store.themeSettingsStore.sidebarHidden
       ) {
-        return "ltr:ml-0 rtl:mr-0";
+        return 'ltr:ml-0 rtl:mr-0'
       } else if (this.$store.themeSettingsStore.sidebarCollasp) {
-        return "ltr:ml-[72px] rtl:mr-[72px]";
+        return 'ltr:ml-[72px] rtl:mr-[72px]'
       } else {
-        return "ltr:ml-[248px] rtl:mr-[248px]";
+        return 'ltr:ml-[248px] rtl:mr-[248px]'
       }
     },
   },
-};
+}
 </script>
 <style lang="scss">
 .router-animation-enter-active {

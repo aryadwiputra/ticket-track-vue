@@ -87,49 +87,49 @@ export default {
       menuHideen: this.$store.themeSettingsStore.sidebarHidden,
       layouts: [
         {
-          value: "vertical",
-          label: "Vertical",
+          value: 'vertical',
+          label: 'Vertical',
         },
         {
-          value: "horizontal",
-          label: "Horizontal",
+          value: 'horizontal',
+          label: 'Horizontal',
         },
       ],
-    };
+    }
   },
   watch: {
     layout: {
       handler() {
         switch (this.layout) {
-          case "vertical":
-            this.$store.themeSettingsStore.menuLayout = this.layout;
-            document.documentElement.setAttribute("menu-layout", this.layout);
-            localStorage.setItem("menuLayout", this.layout);
+          case 'vertical':
+            this.$store.themeSettingsStore.menuLayout = this.layout
+            document.documentElement.setAttribute('menu-layout', this.layout)
+            localStorage.setItem('menuLayout', this.layout)
 
-            break;
-          case "horizontal":
-            this.$store.themeSettingsStore.menuLayout = this.layout;
-            document.documentElement.setAttribute("menu-layout", this.layout);
-            localStorage.setItem("menuLayout", this.layout);
+            break
+          case 'horizontal':
+            this.$store.themeSettingsStore.menuLayout = this.layout
+            document.documentElement.setAttribute('menu-layout', this.layout)
+            localStorage.setItem('menuLayout', this.layout)
 
-            break;
+            break
         }
       },
       immediate: true,
     },
     menuHideen: {
       handler() {
-        this.$store.themeSettingsStore.sidebarHidden = this.menuHideen;
+        this.$store.themeSettingsStore.sidebarHidden = this.menuHideen
       },
       immediate: true,
     },
     menucollaspse: {
       handler() {
-        this.$store.themeSettingsStore.sidebarCollasp = this.menucollaspse;
+        this.$store.themeSettingsStore.sidebarCollasp = this.menucollaspse
       },
       immediate: true,
     },
   },
-};
+}
 </script>
 <style lang=""></style>
