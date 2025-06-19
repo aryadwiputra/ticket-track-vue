@@ -2,40 +2,112 @@
 <template>
   <div class="md:flex justify-between pb-6 md:space-y-0 space-y-3 items-center">
     <h5>Daftar Tiket</h5>
-    <InputGroup
-      v-model="ticketsStore.searchTerm"
-      placeholder="Cari Tiket..."
-      type="text"
-      prependIcon="heroicons-outline:search"
-      merged
-    />
+    <div class="flex items-center space-x-3">
+      <!-- Input Pencarian Global -->
+      <InputGroup
+        v-model="ticketsStore.searchTerm"
+        placeholder="Cari Tiket..."
+        type="text"
+        prependIcon="heroicons-outline:search"
+        merged
+      />
+
+      <!-- Dropdown Filter Status -->
+      <Dropdown classMenuItems="w-[180px]">
+        <button class="btn btn-outline-secondary flex items-center space-x-2">
+          <span>Status: {{ ticketsStore.filterStatus || 'Semua' }}</span>
+          <Icon icon="heroicons-outline:chevron-down" />
+        </button>
+        <template #menus>
+          <MenuItem @click="ticketsStore.setFilterStatus(null)">
+            <div
+              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+            >
+              Semua Status
+            </div>
+          </MenuItem>
+          <MenuItem
+            v-for="status in statusOptions"
+            :key="status.value"
+            @click="ticketsStore.setFilterStatus(status.value)"
+          >
+            <div
+              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
+            >
+              {{ status.label }}
+            </div>
+          </MenuItem>
+        </template>
+      </Dropdown>
+
+      <!-- Dropdown Filter Prioritas -->
+      <Dropdown classMenuItems="w-[180px]">
+        <button class="btn btn-outline-secondary flex items-center space-x-2">
+          <span>Prioritas: {{ ticketsStore.filterPriority || 'Semua' }}</span>
+          <Icon icon="heroicons-outline:chevron-down" />
+        </button>
+        <template #menus>
+          <MenuItem @click="ticketsStore.setFilterPriority(null)">
+            <div
+              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+            >
+              Semua Prioritas
+            </div>
+          </MenuItem>
+          <MenuItem
+            v-for="priority in priorityOptions"
+            :key="priority.value"
+            @click="ticketsStore.setFilterPriority(priority.value)"
+          >
+            <div
+              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
+            >
+              {{ priority.label }}
+            </div>
+          </MenuItem>
+        </template>
+      </Dropdown>
+
+      <!-- Tombol Reset Filter (Opsional) -->
+      <Button
+        v-if="
+          ticketsStore.searchTerm ||
+          ticketsStore.filterStatus ||
+          ticketsStore.filterPriority
+        "
+        text="Reset Filter"
+        btnClass="btn-outline-danger"
+        @click="ticketsStore.resetFilters()"
+      />
+    </div>
   </div>
 
-  <div v-if="ticketsStore.loading" class="text-center py-8">
-    <p class="text-lg text-slate-600 dark:text-slate-300">
-      Memuat data tiket...
-    </p>
-    <!-- Anda bisa menambahkan spinner atau loading animation di sini -->
-  </div>
-  <div v-else-if="ticketsStore.error" class="text-center py-8 text-red-500">
-    <p class="text-lg">Error: {{ ticketsStore.error }}</p>
-  </div>
-  <div v-else>
+  <div class="relative">
     <vue-good-table
       :columns="columns"
-      styleClass=" vgt-table bordered centered"
+      styleClass="vgt-table bordered centered"
       :rows="ticketsStore.tickets"
       :pagination-options="{
         enabled: true,
         perPage: ticketsStore.perPage,
         setCurrentPage: ticketsStore.currentPage,
-        perPageDropdown: [5, 10, 20, 50], // Opsi per halaman
+        perPageDropdown: [5, 10, 20, 50],
         dropdownAllowAll: false,
       }"
       :search-options="{
         enabled: false, // Pencarian ditangani secara eksternal melalui InputGroup dan Pinia
         externalQuery: ticketsStore.searchTerm,
       }"
+      :sort-options="{
+        // Tambahkan sort options
+        enabled: true,
+        initialSortBy: {
+          field: ticketsStore.sortBy,
+          type: ticketsStore.sortOrder,
+        },
+        multipleColumns: false, // Hanya izinkan satu kolom untuk diurutkan
+      }"
+      @on-sort-change="ticketsStore.setSort($event)"
       :select-options="{
         enabled: true,
         selectOnCheckboxOnly: true,
@@ -46,6 +118,29 @@
         selectAllByGroup: true,
       }"
     >
+      <template #empty-results>
+        <div
+          v-if="ticketsStore.loading && ticketsStore.tickets.length === 0"
+          class="text-center py-4"
+        >
+          <p class="text-lg text-slate-600 dark:text-slate-300">
+            Memuat data tiket...
+          </p>
+        </div>
+        <div
+          v-else-if="!ticketsStore.loading && ticketsStore.tickets.length === 0"
+          class="text-center py-4"
+        >
+          Tidak ada data tiket yang ditemukan.
+        </div>
+        <div
+          v-else-if="ticketsStore.error"
+          class="text-center py-4 text-red-500"
+        >
+          <p class="text-lg">Error: {{ ticketsStore.error }}</p>
+        </div>
+      </template>
+
       <template v-slot:table-row="props">
         <span v-if="props.column.field == 'code'">
           {{ '#' + props.row.code }}
@@ -60,14 +155,6 @@
           v-if="props.column.field == 'created_by.name'"
           class="flex items-center"
         >
-          <!-- Gambar dikomentari karena tidak ada di API response -->
-          <!-- <span class="w-7 h-7 rounded-full mr-3 flex-none">
-            <img
-              :src="props.row.created_by.image || defaultUserImage"
-              :alt="props.row.created_by.name"
-              class="object-cover w-full h-full rounded-full"
-            />
-          </span> -->
           <span class="text-sm text-slate-600 dark:text-slate-300 capitalize">{{
             props.row.created_by ? props.row.created_by.name : 'N/A'
           }}</span>
@@ -144,40 +231,38 @@
         </div>
       </template>
     </vue-good-table>
+
+    <div
+      v-if="ticketsStore.loading && ticketsStore.tickets.length > 0"
+      class="absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-800 bg-opacity-70 dark:bg-opacity-70 backdrop-blur-sm z-10 rounded-lg"
+    >
+      <p class="text-lg font-semibold text-slate-800 dark:text-white">
+        Memuat data tiket...
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup>
+import Button from '@/components/Button' // Pastikan Button diimpor
 import Dropdown from '@/components/Dropdown'
 import Icon from '@/components/Icon'
 import InputGroup from '@/components/InputGroup'
 import Pagination from '@/components/Pagination'
-import { useTicketsStore } from '@/store/ticket' // Import Pinia store
+import { useTicketsStore } from '@/store/tickets'
 import { MenuItem } from '@headlessui/vue'
 import { onMounted, watch } from 'vue'
-// import defaultUserImage from '@/assets/images/all-img/user.png'; // Jika ingin menggunakan gambar default
 
 const ticketsStore = useTicketsStore()
 
-const pageRange = 5 // Jumlah halaman yang ditampilkan di pagination
+const pageRange = 5
 
-// Actions for dropdown menu
 const actions = [
-  {
-    name: 'view',
-    icon: 'heroicons-outline:eye',
-  },
-  {
-    name: 'edit',
-    icon: 'heroicons:pencil-square',
-  },
-  {
-    name: 'delete',
-    icon: 'heroicons-outline:trash',
-  },
+  { name: 'view', icon: 'heroicons-outline:eye' },
+  { name: 'edit', icon: 'heroicons:pencil-square' },
+  { name: 'delete', icon: 'heroicons-outline:trash' },
 ]
 
-// Options for per-page dropdown in pagination
 const options = [
   { value: 5, label: '5' },
   { value: 10, label: '10' },
@@ -185,54 +270,35 @@ const options = [
   { value: 50, label: '50' },
 ]
 
-// Columns definition for vue-good-table, adjusted to API response
 const columns = [
-  {
-    label: 'ID',
-    field: 'id',
-  },
-  {
-    label: 'Kode',
-    field: 'code',
-  },
-  {
-    label: 'Judul',
-    field: 'title',
-  },
-  {
-    label: 'Deskripsi',
-    field: 'description',
-  },
-  {
-    label: 'Dibuat Oleh',
-    field: 'created_by.name', // Mengambil nama dari objek created_by
-    sortable: false, // Biasanya tidak sortable untuk nested object
-  },
-  {
-    label: 'Ditugaskan Ke',
-    field: 'assigned_to.name', // Mengambil nama dari objek assigned_to
-    sortable: false,
-  },
-  {
-    label: 'Prioritas',
-    field: 'priority',
-  },
-  {
-    label: 'Status',
-    field: 'status',
-  },
-  {
-    label: 'Dibuat Pada',
-    field: 'created_at',
-  },
-  {
-    label: 'Aksi',
-    field: 'action',
-    sortable: false,
-  },
+  { label: 'ID', field: 'id', sortable: true },
+  { label: 'Kode', field: 'code', sortable: true },
+  { label: 'Judul', field: 'title', sortable: true },
+  { label: 'Deskripsi', field: 'description', sortable: true },
+  { label: 'Dibuat Oleh', field: 'created_by.name', sortable: false },
+  { label: 'Ditugaskan Ke', field: 'assigned_to.name', sortable: false },
+  { label: 'Prioritas', field: 'priority', sortable: true },
+  { label: 'Status', field: 'status', sortable: true },
+  { label: 'Dibuat Pada', field: 'created_at', sortable: true },
+  { label: 'Aksi', field: 'action', sortable: false },
 ]
 
-// Helper function to format date
+// Opsi untuk dropdown filter status
+const statusOptions = [
+  { value: 'open', label: 'Open' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'reopened', label: 'Reopened' },
+]
+
+// Opsi untuk dropdown filter prioritas
+const priorityOptions = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+]
+
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const options = {
@@ -245,23 +311,21 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('id-ID', options)
 }
 
-// Helper function to get status class
 const getStatusClass = (status) => {
   switch (status) {
     case 'open':
-      return 'text-info-500 bg-info-500' // Contoh warna untuk 'open'
+      return 'text-info-500 bg-info-500'
     case 'in_progress':
-      return 'text-warning-500 bg-warning-500' // Contoh warna untuk 'in_progress'
+      return 'text-warning-500 bg-warning-500'
     case 'closed':
-      return 'text-success-500 bg-success-500' // Contoh warna untuk 'closed'
+      return 'text-success-500 bg-success-500'
     case 'reopened':
-      return 'text-primary-500 bg-primary-500' // Contoh warna untuk 'reopened'
+      return 'text-primary-500 bg-primary-500'
     default:
-      return 'text-slate-500 bg-slate-500' // Default
+      return 'text-slate-500 bg-slate-500'
   }
 }
 
-// Helper function to get priority class
 const getPriorityClass = (priority) => {
   switch (priority) {
     case 'low':
@@ -271,13 +335,12 @@ const getPriorityClass = (priority) => {
     case 'high':
       return 'text-danger-500 bg-danger-500'
     case 'urgent':
-      return 'text-red-700 bg-red-700' // Warna lebih kuat untuk urgent
+      return 'text-red-700 bg-red-700'
     default:
       return 'text-slate-500 bg-slate-500'
   }
 }
 
-// Handle action clicks (view, edit, delete)
 const handleAction = (actionName, rowData) => {
   console.log(`Action: ${actionName} on Ticket ID: ${rowData.id}`)
   if (actionName === 'delete') {
@@ -287,29 +350,28 @@ const handleAction = (actionName, rowData) => {
       )
     ) {
       ticketsStore.deleteTicket(rowData.id)
-      // Setelah delete, mungkin perlu refresh data
-      ticketsStore.fetchTickets()
     }
   } else if (actionName === 'view') {
     alert(`Melihat detail tiket ID: ${rowData.id}`)
-    // router.push(`/tickets/${rowData.id}`); // Contoh navigasi ke detail tiket
   } else if (actionName === 'edit') {
     alert(`Mengedit tiket ID: ${rowData.id}`)
-    // router.push(`/tickets/${rowData.id}/edit`); // Contoh navigasi ke edit tiket
   }
 }
 
-// Fetch data on component mount
 onMounted(() => {
   ticketsStore.fetchTickets()
 })
 
-// Watch for changes in pagination and search term to refetch data
+// Watch for changes in pagination, search term, sorting, AND filters to refetch data
 watch(
   () => [
     ticketsStore.currentPage,
     ticketsStore.perPage,
     ticketsStore.searchTerm,
+    ticketsStore.sortBy,
+    ticketsStore.sortOrder,
+    ticketsStore.filterStatus, // Tambahkan ke watch
+    ticketsStore.filterPriority, // Tambahkan ke watch
   ],
   () => {
     ticketsStore.fetchTickets()
