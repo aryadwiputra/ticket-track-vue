@@ -82,8 +82,8 @@
   </div>
 </template>
 <script>
-import Signin from '@/common/Signin'
-import Social from '@/common/Social'
+import Signin from '../common/Signin'
+import Social from '../common/Social'
 // Image Import
 import sideImg from '@/assets/images/auth/ils1.svg'
 import logoWhite from '@/assets/images/logo/logo-white.svg'

@@ -86,8 +86,8 @@
   </div>
 </template>
 <script>
-import Signup from '@/common/Signup'
-import Social from '@/common/Social'
+import Signup from '../common/Signup'
+import Social from '../common/Social'
 
 export default {
   components: {
