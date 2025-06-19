@@ -1,17 +1,36 @@
 const routes = [
   {
-    path: "/",
-    name: "Layout",
-    redirect: "/home",
-    component: () => import("@/Layout/index.vue"),
+    path: '/',
+    name: 'Layout',
+    redirect: '/home',
+    component: () => import('@/Layout/index.vue'),
     children: [
       {
-        path: "/home",
-        name: "home",
-        component: () => import("@/views/index.vue"),
+        path: '/home',
+        name: 'home',
+        component: () => import('@/views/index.vue'),
       },
     ],
   },
-];
+  ,
+  {
+    path: '/login',
+    name: 'Login', // Nama rute harus 'Login' sesuai middleware Anda
+    component: () => import('@/views/auth/login.vue'), // Menggunakan login.vue yang sudah ada
+    meta: { middleware: [guest] }, // Gunakan middleware guest
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/auth/register.vue'), // Rute untuk halaman Register
+    meta: { middleware: [guest] }, // Gunakan middleware guest
+  },
+  // Tambahkan rute 404 atau rute publik lainnya di sini
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/404.vue'), // Contoh halaman 404
+  },
+]
 
-export default routes;
+export default routes
