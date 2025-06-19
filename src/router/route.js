@@ -1,3 +1,4 @@
+import auth from '@/middleware/auth'
 import guest from '@/middleware/guest'
 
 const routes = [
@@ -6,6 +7,7 @@ const routes = [
     name: 'Layout',
     redirect: '/home',
     component: () => import('@/Layout/index.vue'),
+    meta: { middleware: [auth] },
     children: [
       {
         path: '/home',
@@ -14,7 +16,6 @@ const routes = [
       },
     ],
   },
-  ,
   {
     path: '/login',
     name: 'Login', // Nama rute harus 'Login' sesuai middleware Anda

@@ -44,7 +44,7 @@ router.afterEach(() => {
   if (appLoading) {
     appLoading.style.display = 'none'
   }
-  makeServer()
+  // makeServer()
 })
 
 export default router

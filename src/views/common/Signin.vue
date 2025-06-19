@@ -1,10 +1,11 @@
+<!-- src/views/auth/common/Signin.vue -->
 <template>
   <form @submit.prevent="onSubmit" class="space-y-4">
     <Textinput
       label="Email"
       type="email"
       placeholder="Type your email"
-      name="emil"
+      name="email"
       v-model="email"
       :error="emailError"
       classInput="h-[48px]"
@@ -12,21 +13,17 @@
     <Textinput
       label="Password"
       type="password"
-      placeholder="8+ characters, 1 capitat letter "
+      placeholder="8+ characters, 1 capital
+    letter"
       name="password"
       v-model="password"
       :error="passwordError"
       hasicon
       classInput="h-[48px]"
     />
-
     <div class="flex justify-between">
       <label class="cursor-pointer flex items-start">
-        <input
-          type="checkbox"
-          class="hidden"
-          @change="() => (checkbox = !checkbox)"
-        />
+        <input type="checkbox" class="hidden" v-model="checkbox" />
         <span
           class="h-4 w-4 border rounded flex-none inline-flex mr-3 relative top-1 transition-all duration-150"
           :class="
@@ -53,88 +50,80 @@
       >
     </div>
 
-    <button type="submit" class="btn btn-dark block w-full text-center">
-      Sign in
+    <!-- Menampilkan error dari API (Pinia Store) -->
+    <p v-if="authStore.error" class="text-red-500 text-sm text-center">
+      {{ authStore.error }}
+    </p>
+
+    <button
+      type="submit"
+      class="btn btn-dark block w-full text-center"
+      :disabled="authStore.loading"
+    >
+      <span v-if="authStore.loading">Loading...</span>
+      <span v-else>Sign in</span>
     </button>
   </form>
 </template>
-<script>
-import Textinput from "@/components/Textinput";
-import { useField, useForm } from "vee-validate";
-import * as yup from "yup";
 
-import { useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
-export default {
-  components: {
-    Textinput,
+<script setup>
+import Textinput from '@/components/Textinput'
+import { useAuthStore } from '@/store/auth' // Import Pinia auth store
+import { useField, useForm } from 'vee-validate'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
+import * as yup from 'yup'
+
+const authStore = useAuthStore()
+const toast = useToast()
+const router = useRouter()
+
+const checkbox = ref(false) // Menggunakan ref untuk checkbox
+
+// Define a validation schema
+const schema = yup.object({
+  email: yup
+    .string()
+    .required('Email is required')
+    .email('Must be a valid email'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters'),
+})
+
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+  initialValues: {
+    email: 'superadmin@gmail.com', // Default value untuk kemudahan testing
+    password: 'password', // Default value untuk kemudahan testing
   },
-  data() {
-    return {
-      checkbox: false,
-    };
-  },
-  setup() {
-    // Define a validation schema
-    const schema = yup.object({
-      email: yup.string().required("Email is required").email(),
-      password: yup.string().required("Password is required").min(8),
-    });
+})
 
-    const toast = useToast();
-    const router = useRouter();
+// No need to define rules for fields, vee-validate handles it with schema
+const { value: email, errorMessage: emailError } = useField('email')
+const { value: password, errorMessage: passwordError } = useField('password')
 
-    const formValues = {
-      email: "dashcode@gmail.com",
-      password: "dashcode",
-    };
+const onSubmit = handleSubmit(async (values) => {
+  authStore.error = null // Bersihkan error API sebelumnya
 
-    const { handleSubmit } = useForm({
-      validationSchema: schema,
-      initialValues: formValues,
-    });
-    // No need to define rules for fields
+  const success = await authStore.login({
+    email: values.email,
+    password: values.password,
+  })
 
-    const { value: email, errorMessage: emailError } = useField("email");
-    const { value: password, errorMessage: passwordError } =
-      useField("password");
-
-    const onSubmit = handleSubmit((values) => {
-      let isUser = localStorage.users;
-      isUser = JSON.parse(isUser);
-
-      let userIndex = isUser.findIndex((user) => user.email === values.email);
-
-      if (userIndex > -1) {
-        let activeUser = isUser.find((user) => user.email === values.email);
-        localStorage.setItem("activeUser", JSON.stringify(activeUser));
-
-        if (isUser[userIndex].password === values.password) {
-          router.push("/app/home");
-          toast.success(" Login  successfully", {
-            timeout: 2000,
-          });
-        } else {
-          toast.error(" Password not match ", {
-            timeout: 2000,
-          });
-        }
-      } else {
-        toast.error(" User not found", {
-          timeout: 2000,
-        });
-      }
-    });
-
-    return {
-      email,
-
-      emailError,
-      password,
-      passwordError,
-      onSubmit,
-    };
-  },
-};
+  if (success) {
+    toast.success('Login successfully', { timeout: 2000 })
+    // Redirection ke /home sudah ditangani oleh authStore.login()
+    router.push('/home')
+  } else {
+    // Error message sudah diset di authStore.error oleh action login
+    toast.error(authStore.error || 'Login failed. Please try again.', {
+      timeout: 2000,
+    })
+  }
+})
 </script>
+
 <style lang="scss"></style>

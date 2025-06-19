@@ -4,7 +4,7 @@
       <div class="flex-1 ltr:mr-[10px] rtl:ml-[10px]">
         <div class="lg:h-8 lg:w-8 h-7 w-7 rounded-full">
           <img
-            :src= "profileImg"
+            :src="profileImg"
             alt=""
             class="block w-full h-full object-cover rounded-full"
           />
@@ -46,10 +46,11 @@
   </Dropdown>
 </template>
 <script>
-import { MenuItem } from "@headlessui/vue";
-import Dropdown from "@/components/Dropdown";
-import Icon from "@/components/Icon";
-import profileImg from "@/assets/images/all-img/user.png"
+import profileImg from '@/assets/images/all-img/user.png'
+import Dropdown from '@/components/Dropdown'
+import Icon from '@/components/Icon'
+import { useAuthStore } from '@/store/auth'
+import { MenuItem } from '@headlessui/vue'
 export default {
   components: {
     Icon,
@@ -61,65 +62,64 @@ export default {
       profileImg,
       ProfileMenu: [
         {
-          label: "Profile",
-          icon: "heroicons-outline:user",
+          label: 'Profile',
+          icon: 'heroicons-outline:user',
           link: () => {
-            this.$router.push("profile");
+            this.$router.push('profile')
           },
         },
         {
-          label: "Chat",
-          icon: "heroicons-outline:chat",
+          label: 'Chat',
+          icon: 'heroicons-outline:chat',
           link: () => {
-            this.$router.push("chat");
+            this.$router.push('chat')
           },
         },
         {
-          label: "Email",
-          icon: "heroicons-outline:mail",
+          label: 'Email',
+          icon: 'heroicons-outline:mail',
           link: () => {
-            this.$router.push("email");
+            this.$router.push('email')
           },
         },
         {
-          label: "Todo",
-          icon: "heroicons-outline:clipboard-check",
+          label: 'Todo',
+          icon: 'heroicons-outline:clipboard-check',
           link: () => {
-            this.$router.push("todo");
+            this.$router.push('todo')
           },
         },
         {
-          label: "Settings",
-          icon: "heroicons-outline:cog",
+          label: 'Settings',
+          icon: 'heroicons-outline:cog',
           link: () => {
-            this.$router.push("settings");
+            this.$router.push('settings')
           },
         },
         {
-          label: "Price",
-          icon: "heroicons-outline:credit-card",
+          label: 'Price',
+          icon: 'heroicons-outline:credit-card',
           link: () => {
-            this.$router.push("pricing");
+            this.$router.push('pricing')
           },
         },
         {
-          label: "Faq",
-          icon: "heroicons-outline:information-circle",
+          label: 'Faq',
+          icon: 'heroicons-outline:information-circle',
           link: () => {
-            this.$router.push("faq");
+            this.$router.push('faq')
           },
         },
         {
-          label: "Logout",
-          icon: "heroicons-outline:login",
+          label: 'Logout',
+          icon: 'heroicons-outline:login',
           link: () => {
-            this.$router.push("/");
-            localStorage.removeItem("activeUser");
+            useAuthStore().logout()
           },
         },
       ],
-    };
+    }
   },
-};
+}
 </script>
 <style lang=""></style>
