@@ -22,6 +22,11 @@ export const menuItems = [
     icon: 'heroicons-outline:ticket',
     link: 'tickets',
   },
+  {
+    title: 'Users',
+    icon: 'heroicons-outline:users',
+    link: 'users',
+  },
 ]
 // menuseetins
 

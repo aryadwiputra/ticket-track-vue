@@ -19,6 +19,11 @@ const routes = [
         name: 'tickets',
         component: () => import('@/views/app/tickets/index.vue'),
       },
+      {
+        path: '/users',
+        name: 'users',
+        component: () => import('@/views/app/users/index.vue'),
+      },
     ],
   },
   {
