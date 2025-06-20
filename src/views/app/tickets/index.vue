@@ -8,7 +8,7 @@
       <div class="flex items-center space-x-3">
         <!-- Input Pencarian Global -->
         <InputGroup
-          v-model="ticketsStore.searchTerm"
+          v-model="localSearchTerm"
           placeholder="Cari Tiket..."
           type="text"
           classInput="h-[52px]"
@@ -269,9 +269,65 @@ import InputGroup from '@/components/InputGroup'
 import Pagination from '@/components/Pagination'
 import { useTicketsStore } from '@/store/tickets'
 import { MenuItem } from '@headlessui/vue'
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue' // Import ref
 
 const ticketsStore = useTicketsStore()
+
+// --- Debounce Search Implementation ---
+const localSearchTerm = ref('') // Ref lokal untuk mengikat input pencarian
+let searchTimeout = null // Variabel untuk menyimpan ID timeout
+const DEBOUNCE_DELAY = 800 // Delay debounce dalam milidetik (0.8 detik)
+
+// Watch untuk localSearchTerm: Menerapkan debounce
+watch(localSearchTerm, (newVal) => {
+  // Hapus timeout sebelumnya jika ada
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  // Set timeout baru
+  searchTimeout = setTimeout(() => {
+    // Hanya update store jika nilai berbeda untuk menghindari pemicu yang tidak perlu
+    if (ticketsStore.searchTerm !== newVal) {
+      ticketsStore.setSearchTerm(newVal)
+    }
+  }, DEBOUNCE_DELAY)
+})
+
+// Watch untuk ticketsStore.searchTerm: Sinkronkan kembali ke localSearchTerm
+// Ini penting jika ticketsStore.searchTerm diubah dari luar (misalnya, oleh resetFilters)
+watch(
+  () => ticketsStore.searchTerm,
+  (newVal) => {
+    if (localSearchTerm.value !== newVal) {
+      localSearchTerm.value = newVal
+    }
+  }
+)
+
+// --- Inisialisasi dan Fetch Data ---
+onMounted(() => {
+  ticketsStore.fetchTickets()
+  // Sinkronkan nilai awal localSearchTerm dengan store
+  localSearchTerm.value = ticketsStore.searchTerm
+})
+
+// --- Watch Utama untuk Fetching Data ---
+// Watch ini akan memicu fetchTickets setiap kali salah satu dependensi berubah.
+// ticketsStore.searchTerm akan berubah setelah debounce, sehingga fetchTickets terpanggil.
+watch(
+  () => [
+    ticketsStore.currentPage,
+    ticketsStore.perPage,
+    ticketsStore.searchTerm, // Tetap di sini, karena ini adalah pemicu utama
+    ticketsStore.sortBy,
+    ticketsStore.sortOrder,
+    ticketsStore.filterStatus,
+    ticketsStore.filterPriority,
+  ],
+  () => {
+    ticketsStore.fetchTickets()
+  }
+)
 
 const pageRange = 5
 
@@ -375,26 +431,6 @@ const handleAction = (actionName, rowData) => {
     alert(`Mengedit tiket ID: ${rowData.id}`)
   }
 }
-
-onMounted(() => {
-  ticketsStore.fetchTickets()
-})
-
-// Watch for changes in pagination, search term, sorting, AND filters to refetch data
-watch(
-  () => [
-    ticketsStore.currentPage,
-    ticketsStore.perPage,
-    ticketsStore.searchTerm,
-    ticketsStore.sortBy,
-    ticketsStore.sortOrder,
-    ticketsStore.filterStatus, // Tambahkan ke watch
-    ticketsStore.filterPriority, // Tambahkan ke watch
-  ],
-  () => {
-    ticketsStore.fetchTickets()
-  }
-)
 </script>
 
 <style lang="scss"></style>
