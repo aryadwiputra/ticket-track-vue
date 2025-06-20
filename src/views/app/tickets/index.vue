@@ -8,6 +8,7 @@
         v-model="ticketsStore.searchTerm"
         placeholder="Cari Tiket..."
         type="text"
+        classInput="h-[52px]"
         prependIcon="heroicons-outline:search"
         merged
       />
