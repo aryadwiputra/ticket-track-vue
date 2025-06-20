@@ -5,7 +5,9 @@
       class="md:flex justify-between pb-6 md:space-y-0 space-y-3 items-center"
     >
       <h5>Daftar Tiket</h5>
-      <div class="flex items-center space-x-3">
+      <div
+        class="flex flex-col md:flex-row md:items-center space-y-3 md:space-x-3 md:space-y-0 w-full md:w-auto"
+      >
         <!-- Input Pencarian Global -->
         <InputGroup
           v-model="localSearchTerm"
@@ -14,11 +16,14 @@
           classInput="h-[52px]"
           prependIcon="heroicons-outline:search"
           merged
+          class="w-full md:w-auto"
         />
 
         <!-- Dropdown Filter Status -->
         <Dropdown classMenuItems="w-[180px]">
-          <button class="btn btn-outline-secondary flex items-center space-x-2">
+          <button
+            class="btn btn-outline-secondary flex items-center space-x-2 w-full md:w-auto"
+          >
             <span>Status: {{ ticketsStore.filterStatus || 'Semua' }}</span>
             <Icon icon="heroicons-outline:chevron-down" />
           </button>
@@ -46,7 +51,9 @@
 
         <!-- Dropdown Filter Prioritas -->
         <Dropdown classMenuItems="w-[180px]">
-          <button class="btn btn-outline-secondary flex items-center space-x-2">
+          <button
+            class="btn btn-outline-secondary flex items-center space-x-2 w-full md:w-auto"
+          >
             <span>Prioritas: {{ ticketsStore.filterPriority || 'Semua' }}</span>
             <Icon icon="heroicons-outline:chevron-down" />
           </button>
