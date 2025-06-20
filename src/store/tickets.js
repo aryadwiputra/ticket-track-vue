@@ -1,5 +1,6 @@
 // src/store/tickets.js (Modifikasi)
 import api from '@/plugins/axios'
+import router from '@/router'
 import { defineStore } from 'pinia'
 
 export const useTicketsStore = defineStore('tickets', {
