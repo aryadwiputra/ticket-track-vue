@@ -3,24 +3,29 @@ import guest from '@/middleware/guest'
 
 const routes = [
   {
-    path: '/',
+    path: '/app',
     name: 'Layout',
-    redirect: '/home',
+    redirect: '/app/home',
     component: () => import('@/Layout/index.vue'),
-    meta: { middleware: [auth] },
+    meta: { middleware: [auth], hide: true },
     children: [
       {
-        path: '/home',
+        path: 'home',
         name: 'home',
         component: () => import('@/views/index.vue'),
       },
       {
-        path: '/tickets',
+        path: 'tickets',
         name: 'tickets',
         component: () => import('@/views/app/tickets/index.vue'),
       },
       {
-        path: '/users',
+        path: 'tickets/add',
+        name: 'tickets-add',
+        component: () => import('@/views/app/tickets/add.vue'),
+      },
+      {
+        path: 'users',
         name: 'users',
         component: () => import('@/views/app/users/index.vue'),
       },

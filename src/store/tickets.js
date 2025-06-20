@@ -54,6 +54,78 @@ export const useTicketsStore = defineStore('tickets', {
         console.error('Error fetching tickets:', error)
       }
     },
+
+    // --- Aksi baru: Mengambil daftar pengguna ---
+    async fetchUsers() {
+      this.usersLoading = true
+      this.usersError = null
+      try {
+        const response = await api.get('/users') // Asumsi endpoint /users
+        this.users = response.data.data.map((user) => ({
+          value: user.id,
+          label: user.name,
+        }))
+        this.usersLoading = false
+      } catch (error) {
+        this.usersLoading = false
+        this.usersError =
+          error.response?.data?.message || 'Gagal mengambil daftar pengguna.'
+        console.error('Error fetching users:', error)
+      }
+    },
+
+    async createTicket(ticketData) {
+      this.formLoading = true
+      this.formError = null
+      try {
+        const response = await api.post('/tickets', ticketData) // Asumsi endpoint POST /tickets
+        this.formLoading = false
+        // Opsional: Tampilkan toast sukses
+        // useToast().success('Tiket berhasil dibuat!');
+        router.push({ name: 'tickets' }) // Redirect ke halaman daftar tiket
+        return {
+          success: true,
+          message: response.data.message || 'Tiket berhasil dibuat!',
+        }
+      } catch (error) {
+        this.formLoading = false
+        if (error.response) {
+          if (error.response.data.errors) {
+            // Error validasi dari backend
+            const errors = error.response.data.errors
+            let errorMessage = 'Validasi gagal:'
+            for (const key in errors) {
+              errorMessage += `\n- ${errors[key].join(', ')}`
+            }
+            this.formError = errorMessage
+          } else {
+            this.formError =
+              error.response.data.message ||
+              'Terjadi kesalahan saat membuat tiket.'
+          }
+        } else {
+          this.formError =
+            'Tidak dapat terhubung ke server. Periksa koneksi Anda.'
+        }
+        console.error('Error creating ticket:', error)
+        return { success: false, message: this.formError }
+      }
+    },
+
+    async deleteTicket(id) {
+      try {
+        // await api.delete(`/tickets/${id}`);
+        console.log(`Deleting ticket with ID: ${id}`)
+        alert(
+          `Fungsi delete untuk tiket ID ${id} belum diimplementasikan sepenuhnya.`
+        )
+        this.fetchTickets()
+      } catch (error) {
+        console.error('Error deleting ticket:', error)
+        alert('Gagal menghapus tiket.')
+      }
+    },
+
     setPage(page) {
       this.currentPage = page
     },
@@ -90,6 +162,5 @@ export const useTicketsStore = defineStore('tickets', {
       this.sortBy = 'id' // Kembali ke default sort
       this.sortOrder = 'desc' // Kembali ke default sort
     },
-    // ... (deleteTicket action)
   },
 })

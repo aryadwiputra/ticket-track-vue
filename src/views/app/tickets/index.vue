@@ -1,245 +1,262 @@
 <!-- src/views/tickets/TicketsPage.vue -->
 <template>
-  <div class="md:flex justify-between pb-6 md:space-y-0 space-y-3 items-center">
-    <h5>Daftar Tiket</h5>
-    <div class="flex items-center space-x-3">
-      <!-- Input Pencarian Global -->
-      <InputGroup
-        v-model="ticketsStore.searchTerm"
-        placeholder="Cari Tiket..."
-        type="text"
-        classInput="h-[52px]"
-        prependIcon="heroicons-outline:search"
-        merged
-      />
-
-      <!-- Dropdown Filter Status -->
-      <Dropdown classMenuItems="w-[180px]">
-        <button class="btn btn-outline-secondary flex items-center space-x-2">
-          <span>Status: {{ ticketsStore.filterStatus || 'Semua' }}</span>
-          <Icon icon="heroicons-outline:chevron-down" />
-        </button>
-        <template #menus>
-          <MenuItem @click="ticketsStore.setFilterStatus(null)">
-            <div
-              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
-            >
-              Semua Status
-            </div>
-          </MenuItem>
-          <MenuItem
-            v-for="status in statusOptions"
-            :key="status.value"
-            @click="ticketsStore.setFilterStatus(status.value)"
-          >
-            <div
-              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
-            >
-              {{ status.label }}
-            </div>
-          </MenuItem>
-        </template>
-      </Dropdown>
-
-      <!-- Dropdown Filter Prioritas -->
-      <Dropdown classMenuItems="w-[180px]">
-        <button class="btn btn-outline-secondary flex items-center space-x-2">
-          <span>Prioritas: {{ ticketsStore.filterPriority || 'Semua' }}</span>
-          <Icon icon="heroicons-outline:chevron-down" />
-        </button>
-        <template #menus>
-          <MenuItem @click="ticketsStore.setFilterPriority(null)">
-            <div
-              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
-            >
-              Semua Prioritas
-            </div>
-          </MenuItem>
-          <MenuItem
-            v-for="priority in priorityOptions"
-            :key="priority.value"
-            @click="ticketsStore.setFilterPriority(priority.value)"
-          >
-            <div
-              class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
-            >
-              {{ priority.label }}
-            </div>
-          </MenuItem>
-        </template>
-      </Dropdown>
-
-      <!-- Tombol Reset Filter (Opsional) -->
-      <Button
-        v-if="
-          ticketsStore.searchTerm ||
-          ticketsStore.filterStatus ||
-          ticketsStore.filterPriority
-        "
-        text="Reset Filter"
-        btnClass="btn-outline-danger"
-        @click="ticketsStore.resetFilters()"
-      />
-    </div>
-  </div>
-
-  <div class="relative">
-    <vue-good-table
-      :columns="columns"
-      styleClass="vgt-table bordered centered"
-      :rows="ticketsStore.tickets"
-      :pagination-options="{
-        enabled: true,
-        perPage: ticketsStore.perPage,
-        setCurrentPage: ticketsStore.currentPage,
-        perPageDropdown: [5, 10, 20, 50],
-        dropdownAllowAll: false,
-      }"
-      :search-options="{
-        enabled: false, // Pencarian ditangani secara eksternal melalui InputGroup dan Pinia
-        externalQuery: ticketsStore.searchTerm,
-      }"
-      :sort-options="{
-        // Tambahkan sort options
-        enabled: true,
-        initialSortBy: {
-          field: ticketsStore.sortBy,
-          type: ticketsStore.sortOrder,
-        },
-        multipleColumns: false, // Hanya izinkan satu kolom untuk diurutkan
-      }"
-      @on-sort-change="ticketsStore.setSort($event)"
-      :select-options="{
-        enabled: true,
-        selectOnCheckboxOnly: true,
-        selectioninfoClass: 'custom-class',
-        selectionText: 'rows selected',
-        clearSelectionText: 'clear',
-        disableSelectinfo: true,
-        selectAllByGroup: true,
-      }"
+  <div>
+    <div
+      class="md:flex justify-between pb-6 md:space-y-0 space-y-3 items-center"
     >
-      <template #empty-results>
-        <div
-          v-if="ticketsStore.loading && ticketsStore.tickets.length === 0"
-          class="text-center py-4"
-        >
-          <p class="text-lg text-slate-600 dark:text-slate-300">
-            Memuat data tiket...
-          </p>
-        </div>
-        <div
-          v-else-if="!ticketsStore.loading && ticketsStore.tickets.length === 0"
-          class="text-center py-4"
-        >
-          Tidak ada data tiket yang ditemukan.
-        </div>
-        <div
-          v-else-if="ticketsStore.error"
-          class="text-center py-4 text-red-500"
-        >
-          <p class="text-lg">Error: {{ ticketsStore.error }}</p>
-        </div>
-      </template>
+      <h5>Daftar Tiket</h5>
+      <div class="flex items-center space-x-3">
+        <!-- Input Pencarian Global -->
+        <InputGroup
+          v-model="ticketsStore.searchTerm"
+          placeholder="Cari Tiket..."
+          type="text"
+          classInput="h-[52px]"
+          prependIcon="heroicons-outline:search"
+          merged
+        />
 
-      <template v-slot:table-row="props">
-        <span v-if="props.column.field == 'code'">
-          {{ '#' + props.row.code }}
-        </span>
-        <span v-if="props.column.field == 'title'">
-          {{ props.row.title }}
-        </span>
-        <span v-if="props.column.field == 'description'">
-          {{ props.row.description }}
-        </span>
-        <span
-          v-if="props.column.field == 'created_by.name'"
-          class="flex items-center"
-        >
-          <span class="text-sm text-slate-600 dark:text-slate-300 capitalize">{{
-            props.row.created_by ? props.row.created_by.name : 'N/A'
-          }}</span>
-        </span>
-        <span
-          v-if="props.column.field == 'assigned_to.name'"
-          class="flex items-center"
-        >
-          <span class="text-sm text-slate-600 dark:text-slate-300 capitalize">{{
-            props.row.assigned_to ? props.row.assigned_to.name : 'N/A'
-          }}</span>
-        </span>
-        <span
-          v-if="props.column.field == 'created_at'"
-          class="text-slate-500 dark:text-slate-300"
-        >
-          {{ formatDate(props.row.created_at) }}
-        </span>
-        <span v-if="props.column.field == 'status'" class="block w-full">
-          <span
-            class="inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 capitalize"
-            :class="getStatusClass(props.row.status)"
+        <!-- Dropdown Filter Status -->
+        <Dropdown classMenuItems="w-[180px]">
+          <button class="btn btn-outline-secondary flex items-center space-x-2">
+            <span>Status: {{ ticketsStore.filterStatus || 'Semua' }}</span>
+            <Icon icon="heroicons-outline:chevron-down" />
+          </button>
+          <template #menus>
+            <MenuItem @click="ticketsStore.setFilterStatus(null)">
+              <div
+                class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                Semua Status
+              </div>
+            </MenuItem>
+            <MenuItem
+              v-for="status in statusOptions"
+              :key="status.value"
+              @click="ticketsStore.setFilterStatus(status.value)"
+            >
+              <div
+                class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
+              >
+                {{ status.label }}
+              </div>
+            </MenuItem>
+          </template>
+        </Dropdown>
+
+        <!-- Dropdown Filter Prioritas -->
+        <Dropdown classMenuItems="w-[180px]">
+          <button class="btn btn-outline-secondary flex items-center space-x-2">
+            <span>Prioritas: {{ ticketsStore.filterPriority || 'Semua' }}</span>
+            <Icon icon="heroicons-outline:chevron-down" />
+          </button>
+          <template #menus>
+            <MenuItem @click="ticketsStore.setFilterPriority(null)">
+              <div
+                class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                Semua Prioritas
+              </div>
+            </MenuItem>
+            <MenuItem
+              v-for="priority in priorityOptions"
+              :key="priority.value"
+              @click="ticketsStore.setFilterPriority(priority.value)"
+            >
+              <div
+                class="px-4 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 capitalize"
+              >
+                {{ priority.label }}
+              </div>
+            </MenuItem>
+          </template>
+        </Dropdown>
+
+        <!-- Tombol Reset Filter (Opsional) -->
+        <Button
+          v-if="
+            ticketsStore.searchTerm ||
+            ticketsStore.filterStatus ||
+            ticketsStore.filterPriority
+          "
+          text="Reset Filter"
+          btnClass="btn-outline-danger"
+          @click="ticketsStore.resetFilters()"
+        />
+
+        <!-- Tombol Add Data -->
+        <router-link class="btn btn-dark" to="/app/tickets/add">
+          Add Data
+        </router-link>
+      </div>
+    </div>
+
+    <div class="relative">
+      <vue-good-table
+        :columns="columns"
+        styleClass="vgt-table bordered centered"
+        :rows="ticketsStore.tickets"
+        :pagination-options="{
+          enabled: true,
+          perPage: ticketsStore.perPage,
+          setCurrentPage: ticketsStore.currentPage,
+          perPageDropdown: [5, 10, 20, 50],
+          dropdownAllowAll: false,
+        }"
+        :search-options="{
+          enabled: false, // Pencarian ditangani secara eksternal melalui InputGroup dan Pinia
+          externalQuery: ticketsStore.searchTerm,
+        }"
+        :sort-options="{
+          // Tambahkan sort options
+          enabled: true,
+          initialSortBy: {
+            field: ticketsStore.sortBy,
+            type: ticketsStore.sortOrder,
+          },
+          multipleColumns: false, // Hanya izinkan satu kolom untuk diurutkan
+        }"
+        @on-sort-change="ticketsStore.setSort($event)"
+        :select-options="{
+          enabled: true,
+          selectOnCheckboxOnly: true,
+          selectioninfoClass: 'custom-class',
+          selectionText: 'rows selected',
+          clearSelectionText: 'clear',
+          disableSelectinfo: true,
+          selectAllByGroup: true,
+        }"
+      >
+        <template #empty-results>
+          <div
+            v-if="ticketsStore.loading && ticketsStore.tickets.length === 0"
+            class="text-center py-4"
           >
-            {{ props.row.status.replace(/_/g, ' ') }}
-          </span>
-        </span>
-        <span v-if="props.column.field == 'priority'" class="block w-full">
-          <span
-            class="inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 capitalize"
-            :class="getPriorityClass(props.row.priority)"
+            <p class="text-lg text-slate-600 dark:text-slate-300">
+              Memuat data tiket...
+            </p>
+          </div>
+          <div
+            v-else-if="
+              !ticketsStore.loading && ticketsStore.tickets.length === 0
+            "
+            class="text-center py-4"
           >
-            {{ props.row.priority }}
+            Tidak ada data tiket yang ditemukan.
+          </div>
+          <div
+            v-else-if="ticketsStore.error"
+            class="text-center py-4 text-red-500"
+          >
+            <p class="text-lg">Error: {{ ticketsStore.error }}</p>
+          </div>
+        </template>
+
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field == 'code'">
+            {{ '#' + props.row.code }}
           </span>
-        </span>
-        <span v-if="props.column.field == 'action'">
-          <Dropdown classMenuItems=" w-[140px]">
-            <span class="text-xl"
-              ><Icon icon="heroicons-outline:dots-vertical"
-            /></span>
-            <template v-slot:menus>
-              <MenuItem v-for="(item, i) in actions" :key="i">
-                <div
-                  :class="`
+          <span v-if="props.column.field == 'title'">
+            {{ props.row.title }}
+          </span>
+          <span v-if="props.column.field == 'description'">
+            {{ props.row.description }}
+          </span>
+          <span
+            v-if="props.column.field == 'created_by.name'"
+            class="flex items-center"
+          >
+            <span
+              class="text-sm text-slate-600 dark:text-slate-300 capitalize"
+              >{{
+                props.row.created_by ? props.row.created_by.name : 'N/A'
+              }}</span
+            >
+          </span>
+          <span
+            v-if="props.column.field == 'assigned_to.name'"
+            class="flex items-center"
+          >
+            <span
+              class="text-sm text-slate-600 dark:text-slate-300 capitalize"
+              >{{
+                props.row.assigned_to ? props.row.assigned_to.name : 'N/A'
+              }}</span
+            >
+          </span>
+          <span
+            v-if="props.column.field == 'created_at'"
+            class="text-slate-500 dark:text-slate-300"
+          >
+            {{ formatDate(props.row.created_at) }}
+          </span>
+          <span v-if="props.column.field == 'status'" class="block w-full">
+            <span
+              class="inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 capitalize"
+              :class="getStatusClass(props.row.status)"
+            >
+              {{ props.row.status.replace(/_/g, ' ') }}
+            </span>
+          </span>
+          <span v-if="props.column.field == 'priority'" class="block w-full">
+            <span
+              class="inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] bg-opacity-25 capitalize"
+              :class="getPriorityClass(props.row.priority)"
+            >
+              {{ props.row.priority }}
+            </span>
+          </span>
+          <span v-if="props.column.field == 'action'">
+            <Dropdown classMenuItems=" w-[140px]">
+              <span class="text-xl"
+                ><Icon icon="heroicons-outline:dots-vertical"
+              /></span>
+              <template v-slot:menus>
+                <MenuItem v-for="(item, i) in actions" :key="i">
+                  <div
+                    :class="`
                   ${
                     item.name === 'delete'
                       ? 'bg-danger-500 text-danger-500 bg-opacity-30   hover:bg-opacity-100 hover:text-white'
                       : 'hover:bg-slate-900 hover:text-white dark:hover:bg-slate-600 dark:hover:bg-opacity-50'
                   }
                   w-full border-b border-b-gray-500 border-opacity-10 px-4 py-2 text-sm  last:mb-0 cursor-pointer first:rounded-t last:rounded-b flex  space-x-2 items-center `"
-                  @click="handleAction(item.name, props.row)"
-                >
-                  <span class="text-base"><Icon :icon="item.icon" /></span>
-                  <span>{{ item.name }}</span>
-                </div>
-              </MenuItem>
-            </template>
-          </Dropdown>
-        </span>
-      </template>
-      <template #pagination-bottom="props">
-        <div class="py-4 px-3">
-          <Pagination
-            :total="ticketsStore.totalTickets"
-            :current="ticketsStore.currentPage"
-            :per-page="ticketsStore.perPage"
-            :pageRange="pageRange"
-            @page-changed="ticketsStore.setPage($event)"
-            @per-page-changed="ticketsStore.setPerPage($event)"
-            enableSearch
-            enableSelect
-            :options="options"
-          >
-          </Pagination>
-        </div>
-      </template>
-    </vue-good-table>
+                    @click="handleAction(item.name, props.row)"
+                  >
+                    <span class="text-base"><Icon :icon="item.icon" /></span>
+                    <span>{{ item.name }}</span>
+                  </div>
+                </MenuItem>
+              </template>
+            </Dropdown>
+          </span>
+        </template>
+        <template #pagination-bottom="props">
+          <div class="py-4 px-3">
+            <Pagination
+              :total="ticketsStore.totalTickets"
+              :current="ticketsStore.currentPage"
+              :per-page="ticketsStore.perPage"
+              :pageRange="pageRange"
+              @page-changed="ticketsStore.setPage($event)"
+              @per-page-changed="ticketsStore.setPerPage($event)"
+              enableSearch
+              enableSelect
+              :options="options"
+            >
+            </Pagination>
+          </div>
+        </template>
+      </vue-good-table>
 
-    <div
-      v-if="ticketsStore.loading && ticketsStore.tickets.length > 0"
-      class="absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-800 bg-opacity-70 dark:bg-opacity-70 backdrop-blur-sm z-10 rounded-lg"
-    >
-      <p class="text-lg font-semibold text-slate-800 dark:text-white">
-        Memuat data tiket...
-      </p>
+      <div
+        v-if="ticketsStore.loading && ticketsStore.tickets.length > 0"
+        class="absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-800 bg-opacity-70 dark:bg-opacity-70 backdrop-blur-sm z-10 rounded-lg"
+      >
+        <p class="text-lg font-semibold text-slate-800 dark:text-white">
+          Memuat data tiket...
+        </p>
+      </div>
     </div>
   </div>
 </template>
